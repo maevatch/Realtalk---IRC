@@ -99,18 +99,45 @@ io.on('connection', (socket) => {
     }
   });
 
-  /////////// Supprimer un canal (/delete) ///////////
-  socket.on('/delete', (channelName, callback) => {
-    if (channels.has(channelName)) {
-      channels.delete(channelName);
-      callback("✅ Canal supprimé");
-      socket.emit('/delete', channelName);
-    } else {
-      callback("❌ Ce canal n'existe pas !");
-    }
-  });
+  ///////////////////// Supprimer un canal (/delete) //////////////////////
+socket.on('/delete', async (channelName, callback) => {
+  try {
+    const channel = await Channel.findOne({ name: channelName }).populate('users');
 
-  //////// Rejoindre un canal (/join) /////////
+    if (!channel) {
+      return callback("❌ Ce canal n'existe pas !");
+    }
+
+    const currentUser = await User.findOne({ socketId: socket.id });
+    if (!currentUser || String(channel.users[0]._id) !== String(currentUser._id)) {
+      return callback("❌ Tu n'es pas le créateur de ce canal.");
+    }
+
+    // Supprimer dans MongoDB
+    await Channel.deleteOne({ _id: channel._id });
+
+    // Supprimer en mémoire
+    channels.delete(channelName);
+
+    // Déconnecter tous les membres du canal (événement client personnalisé)
+    for (const member of channel.users) {
+      const socketId = member.socketId;
+      if (socketId) {
+        io.to(socketId).emit('/force_quit', channelName);
+      }
+    }
+
+    callback("✅ Canal supprimé.");
+    socket.broadcast.emit('/delete', channelName);
+
+  } catch (err) {
+    console.error("❌ Erreur lors de la suppression :", err);
+    callback("❌ Une erreur est survenue.");
+  }
+});
+
+
+  //////////////////////// Rejoindre un canal (/join) //////////////////////
   socket.on('/join', async (channelName, callback) => {
     const channelDoc = await Channel.findOne({ name: channelName });
     if (!channelDoc) {
@@ -250,12 +277,19 @@ socket.on('/list', async (filter = '', callback) => {
       author: c.users && c.users.length > 0 ? c.users[0].username : 'Inconnu'
     }));
 
-    callback(formatted);
+    if (typeof callback === 'function') {
+      callback(formatted);
+    } else {
+      console.warn("⚠️ Aucun callback fourni pour /list");
+    }
   } catch (err) {
     console.error('/list error :', err);
-    callback([]);
+    if (typeof callback === 'function') {
+      callback([]);
+    }
   }
 });
+
  
   ////////////////// Lister les utilisateurs d'un canal (/users)///////////////////////
   socket.on('/users', async (callback) => {

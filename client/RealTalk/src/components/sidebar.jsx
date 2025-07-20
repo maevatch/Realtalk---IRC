@@ -9,32 +9,38 @@ function Sidebar({ nickname, onSelectConversation }) {
   const [privateConversations, setPrivateConversations] = useState([]);
 
   useEffect(() => {
-  socket.emit('/list', (data) => {
-    setChannels(data);  // data = [{name, author}, ...]
+  // Récupérer la liste des canaux disponibles
+  socket.emit('/list', '', (data) => {
+    setChannels(data);
   });
-
+  // Récupérer les canaux auxquels l'utilisateur a déjà adhéré
   socket.emit('/mychannels', (data) => {
     setJoinedChannels(data);  // data = [channelName, ...]
   });
-
+  // Récupérer les conversations privées
   socket.emit('/privates', (data) => {
     setPrivateConversations(data);  // data = [username, ...]
   });
-
+  // Écouter les événements de création de canaux
   socket.on('/create', (newChannel) => {
     setChannels((prev) => [...prev, { name: newChannel, author: 'Inconnu' }]);
   });
-
+  // Écouter les événements de jointure de canaux 
   socket.on('/join', (channel) => {
     setJoinedChannels((prev) => [...new Set([...prev, channel])]);
   });
+  // Écouter les événements de suppression de canaux
+  socket.on('/force_quit', (channelName) => {
+    setJoinedChannels((prev) => prev.filter((name) => name !== channelName));
+  });
 
+  // Nettoyage des écouteurs d'événements
   return () => {
     socket.off('/create');
     socket.off('/join');
+    socket.off('/force_quit');
   };
 }, [nickname]);
-
 
   const handlePrivateMessage = () => {
     const recipient = prompt("Avec qui veux-tu discuter en privé ?");

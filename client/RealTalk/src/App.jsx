@@ -38,11 +38,9 @@ function App() {
   }, []);
 
     const handleSelectConversation = ({ type, name, author }) => {
-    setSelectedConversation(name);
-    setConversationType(type);
-    setChannelAuthor(author || null); 
-  };
-
+      setSelectedConversation({ type, name });
+      setChannelAuthor(author || null);
+    };
 
 
   if (!nickname) {
@@ -60,25 +58,21 @@ function App() {
             {welcomeMessage}
           </div>
         )}
-        {!selectedConversation?.name && <p>💬 Sélectionne une conversation</p>}
-        {/* Public */}
+        {!selectedConversation && <p>💬 Sélectionne une conversation</p>}
+
         {selectedConversation?.type === 'channel' && (
           <ChannelChat
             channel={selectedConversation.name}
             nickname={nickname}
-            author={channelAuthor} // On passe l’auteur ici
+            author={channelAuthor}
           />
         )}
-
-        {/* Privé */}
         {selectedConversation?.type === 'private' && (
           <PrivateChat
             recipient={selectedConversation.name}
             nickname={nickname}
           />
-        )}
-
-        
+        )}        
       </div>
     </div>
   );
