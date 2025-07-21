@@ -1,5 +1,5 @@
-/* Import du style WhatsApp pour RealTalk */
-@import './styles/whatsapp.css';
+/* Import du style RealTalk */
+@import './styles/realtalk.css';
 
 /* Reset global */
 * {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import socket from '../socket';
 import Logo from './Logo';
-import '../styles/whatsapp.css';
+import '../styles/realtalk.css';
 
 function Auth({ onAuthenticated }) {
   const [username, setUsername] = useState('');

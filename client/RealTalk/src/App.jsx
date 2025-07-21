@@ -4,7 +4,7 @@ import Sidebar from './components/sidebar';
 import ChannelChat from './components/ChannelChat';
 import PrivateChat from './components/PrivateChat';
 import socket from './socket';
-import './styles/whatsapp.css';
+import './styles/realtalk.css';
 
 function App() {
   const [nickname, setNickname] = useState('');
