@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react';
 import socket from '../socket';
 
 function Sidebar({ nickname, onSelectConversation }) {
-  const [activeTab, setActiveTab] = useState('channels');
-  const [channels, setChannels] = useState([]);
-  const [joinedChannels, setJoinedChannels] = useState([]);
-  const [privateConversations, setPrivateConversations] = useState([]);
+  const [activeTab, setActiveTab] = useState('channels'); // 'channels' ou 'conversations'
+  const [channels, setChannels] = useState([]);// Liste des canaux disponibles
+  const [joinedChannels, setJoinedChannels] = useState([]);// Liste des canaux auxquels l'utilisateur a adhéré
+  const [privateConversations, setPrivateConversations] = useState([]);// Liste des conversations privées
+  const [showActions, setShowActions] = useState(false);// État pour afficher/masquer les actions
+
 
   useEffect(() => {
   // Récupérer la liste des canaux disponibles
@@ -29,7 +31,10 @@ function Sidebar({ nickname, onSelectConversation }) {
   socket.on('/join', (channel) => {
     setJoinedChannels((prev) => [...new Set([...prev, channel])]);
   });
-  // Écouter les événements de suppression de canaux
+  // Écouter les événements de sortie de canaux
+  socket.on('/quit', (channelName) => {
+    setJoinedChannels((prev) => prev.filter((name) => name !== channelName));
+  });
   socket.on('/force_quit', (channelName) => {
     setJoinedChannels((prev) => prev.filter((name) => name !== channelName));
   });
@@ -39,33 +44,64 @@ function Sidebar({ nickname, onSelectConversation }) {
     socket.off('/create');
     socket.off('/join');
     socket.off('/force_quit');
+    socket.off('/quit');
   };
 }, [nickname]);
-
+  // /msg
   const handlePrivateMessage = () => {
-    const recipient = prompt("Avec qui veux-tu discuter en privé ?");
-    if (!recipient || recipient === nickname) return;
-
+  const recipient = prompt("Avec qui veux-tu discuter en privé ?");
+  if (!recipient || typeof recipient !== 'string' || recipient === nickname) return;
     socket.emit('/msg', recipient, (response) => {
       if (response.startsWith('✅')) {
+        // Ajouter dans la liste si pas encore présent
+        setPrivateConversations((prev = []) =>
+          prev.includes(recipient) ? prev : [...prev, recipient]
+        );
+
         onSelectConversation({ type: 'private', name: recipient });
       } else {
         alert(response);
       }
     });
+
+    setShowActions(false);
   };
 
+
+// /create
+  const handleCreateChannel = () => {
+    const channelName = prompt("Nom du nouveau canal :");
+    if (!channelName) return;
+
+    socket.emit('/create', channelName, (response) => {
+      alert(response);
+      if (response.startsWith('✅')) {
+        // 👉 Rejoindre automatiquement le canal juste après l’avoir créé
+        socket.emit('/join', channelName, (joinResponse) => {
+          if (joinResponse.startsWith('✅')) {
+            onSelectConversation({ type: 'channel', name: channelName });
+          } else {
+            alert(joinResponse);
+          }
+        });
+      }
+    });
+
+    setShowActions(false);
+  };
+
+// /join
   const handleJoinChannel = (channelName) => {
     const confirmJoin = window.confirm(`Rejoindre le canal #${channelName} ?`);
     if (!confirmJoin) return;
+      socket.emit('/join', channelName, (response) => {
+        alert(response);
+        if (response.startsWith('✅')) {
+          onSelectConversation({ type: 'channel', name: channelName });
+        }
+      });
 
-    socket.emit('/join', channelName, (response) => {
-      alert(response);
-      if (response.startsWith('✅')) {
-        onSelectConversation({ type: 'channel', name: channelName });
-      }
-    });
-  };
+    };
 
   return (
     <div style={{ width: '250px', borderRight: '1px solid #ccc', padding: '1rem', display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -104,9 +140,29 @@ function Sidebar({ nickname, onSelectConversation }) {
       </div>
 
       {/* ➕ Bouton pour message privé */}
-      <div style={{ textAlign: 'right', marginTop: '1rem' }}>
-        <button onClick={handlePrivateMessage} title="Nouveau message privé">➕</button>
-      </div>
+      <div style={{ position: 'relative', textAlign: 'right', marginTop: '1rem' }}>
+  <button onClick={() => setShowActions((prev) => !prev)} title="Nouveau...">➕</button>
+
+  {showActions && (
+    <div style={{
+      position: 'absolute',
+      bottom: '2.5rem',
+      right: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.5rem',
+      backgroundColor: '#fff',
+      border: '1px solid #ccc',
+      padding: '0.5rem',
+      borderRadius: '8px',
+      zIndex: 10
+    }}>
+      <button onClick={handleCreateChannel} title="Créer un canal">#️</button>
+      <button onClick={handlePrivateMessage} title="Message privé">🔒</button>
+    </div>
+  )}
+</div>
+
     </div>
   );
 }

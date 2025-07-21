@@ -15,9 +15,9 @@ function ChannelChat({ channel, author, nickname }) {
   useEffect(() => {
     setMessages([]); // réinitialise les messages à chaque changement de canal
 
-    // Écoute des messages du serveur
+    // Gestions messages du serveur
     const handleMessage = (msg) => setMessages((prev) => [...prev, msg]);
-    // Écoute des messages du serveur
+    // Gestions des événements de suppression de canal
     const handleForceQuit = (chan) => { 
       if (chan === channel) {
         setServerMessage("⛔ Ce canal a été supprimé.");

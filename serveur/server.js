@@ -139,55 +139,85 @@ socket.on('/delete', async (channelName, callback) => {
 
   //////////////////////// Rejoindre un canal (/join) //////////////////////
   socket.on('/join', async (channelName, callback) => {
+  let author;  // déclaration avant le try
+  try {
     const channelDoc = await Channel.findOne({ name: channelName });
     if (!channelDoc) {
       return callback("❌ Ce canal n'existe pas !");
     }
-    // Mets à jour le Set en mémoire si besoin
     channels.add(channelName);
 
-    try {
-      socket.join(channelName);
-      callback("✅ Tu as rejoint le canal");
-      socket.emit('/join', channelName);
-      socket.broadcast.emit('/join', channelName); //pour informer les autres clients
+    socket.join(channelName);
+    callback("✅ Tu as rejoint le canal");
+    socket.emit('/join', channelName);
+    socket.broadcast.emit('/join', channelName);
 
-      // Récupérer l'utilisateur courant
-      const author = await User.findOne({ socketId: socket.id });
+    author = await User.findOne({ socketId: socket.id });
 
-      // Ajouter l'utilisateur au tableau "users" du canal (évite doublons)
-      await Channel.updateOne(
-        { name: channelName },
-        { $addToSet: { users: author._id } }
-      );
-      console.log(`[DEBUG] Ajout de ${author.username} au canal ${channelName}`);
+    await Channel.updateOne(
+      { name: channelName },
+      { $addToSet: { users: author._id } }
+    );
+    console.log(`[DEBUG] Ajout de ${author.username} au canal ${channelName}`);
 
-      // Charger et renvoyer l’historique du canal
-      const channelDoc = await Channel.findOne({ name: channelName });
-      const messages = await Message.find({ channel: channelDoc._id })
-        .populate('author', 'username')
-        .sort({ timestamp: 1 });
+    const channelDocAgain = await Channel.findOne({ name: channelName });
+    const messages = await Message.find({ channel: channelDocAgain._id })
+      .populate('author', 'username')
+      .sort({ timestamp: 1 });
 
-      const formatted = messages.map(m => `${m.author.username} : ${m.content}`);
-      if (formatted.length > 0) {
-        socket.emit('server_message', `📜 ${formatted.length} messages précédents :`);
-        formatted.forEach(msg => socket.emit('server_message', msg));
-      }
-
-    } catch (err) {
-      console.error('❌ Erreur lors du join/historique :', err);
-      io.to(channelName).emit('server_message', `🔔 ${author.username} a rejoint le canal.`);
-      callback("❌ Erreur lors de la connexion au canal.");
+    const formatted = messages.map(m => `${m.author.username} : ${m.content}`);
+    if (formatted.length > 0) {
+      socket.emit('server_message', `📜 ${formatted.length} messages précédents :`);
+      formatted.forEach(msg => socket.emit('server_message', msg));
     }
-  });
+
+  } catch (err) {
+    console.error('❌ Erreur lors du join/historique :', err);
+    if (author && author.username) {
+      io.to(channelName).emit('server_message', `🔔 ${author.username} a rejoint le canal.`);
+    } else {
+      io.to(channelName).emit('server_message', `🔔 Quelqu’un a rejoint le canal.`);
+    }
+    callback("❌ Erreur lors de la connexion au canal.");
+  }
+});
 
   /////////// Quitter un canal (/quit) /////////////
-  socket.on('/quit', (channelName, callback) => {
+  socket.on('/quit', async (channelName, callback) => {
+  const username = users[socket.id];
+
+  if (!username) {
+    return callback("❌ Tu dois d'abord te connecter avec /nick");
+  }
+
+  try {
+    const channel = await Channel.findOne({ name: channelName });
+
+    if (!channel) {
+      return callback("❌ Ce canal n'existe pas");
+    }
+
+    // Retirer le membre du canal (via son ID MongoDB)
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return callback("❌ Utilisateur introuvable");
+    }
+
+    // Retirer l'utilisateur de la liste des membres
+    channel.users = channel.users.filter(id => id.toString() !== user._id.toString());
+    await channel.save();
+
     socket.leave(channelName);
-    callback("👋 Tu as quitté le canal");
-    socket.emit('/quit', channelName); // utile uniquement si tu le traites côté client
-    io.to(channelName).emit('server_message', `${users[socket.id]} a quitté le canal.`);
-  });
+    callback(`👋 Tu as quitté le canal ${channelName}`);
+    
+    socket.emit('/quit', channelName); // facultatif
+    io.to(channelName).emit('server_message', `${username} a quitté le canal.`);
+  } catch (err) {
+    console.error(err);
+    callback("❌ Erreur lors de la sortie du canal");
+  }
+});
 
   ////////// Envoie message dans un canal //////////////
   socket.on('message', async ({ channel, message }) => {
@@ -220,54 +250,59 @@ socket.on('/delete', async (channelName, callback) => {
  socket.on('/msg', async (data, callback) => {
   let to, content;
 
-  // Si data est un objet : { to: "bob", content: "salut" }
   if (typeof data === 'object') {
     to = data.to;
     content = data.content;
   } else if (typeof data === 'string') {
-    // Si c’est juste une chaîne, vérifier s’il y a un espace
     const [target, ...msgParts] = data.split(' ');
     to = target;
     content = msgParts.join(' ');
   }
 
-  if (!to || to === socket.nickname) {
+  if (!to || to === users[socket.id]) {
     return callback?.("❌ Nom d’utilisateur invalide");
   }
 
-  const recipientSocket = Array.from(users.entries())
-    .find(([_, s]) => s.nickname === to)?.[1];
+  const sender = await User.findOne({ socketId: socket.id });
+  const recipient = await User.findOne({ username: to });
 
-  if (!recipientSocket) {
+  if (!recipient) {
+    return callback?.("❌ Utilisateur non trouvé.");
+  }
+
+  const recipientSocketId = Object.entries(users).find(([_, nick]) => nick === to)?.[0];
+  if (!recipientSocketId) {
     return callback?.("❌ Utilisateur non connecté.");
   }
 
+  // Envoi en temps réel
+  io.to(recipientSocketId).emit('private_message', {
+    from: sender.username,
+    content
+  });
+
+  // 💾 Sauvegarde du message privé
   if (content) {
-    // Envoi direct du message
-    recipientSocket.emit('private_message', { from: socket.nickname, content });
-
-    // Historique côté expéditeur
-    if (!privateMessages[socket.nickname]) privateMessages[socket.nickname] = {};
-    if (!privateMessages[socket.nickname][to]) privateMessages[socket.nickname][to] = [];
-    privateMessages[socket.nickname][to].push({ from: socket.nickname, content });
-
-    // Historique côté destinataire
-    if (!privateMessages[to]) privateMessages[to] = {};
-    if (!privateMessages[to][socket.nickname]) privateMessages[to][socket.nickname] = [];
-    privateMessages[to][socket.nickname].push({ from: socket.nickname, content });
-
-    return callback?.(`✅ Message envoyé à ${to}`);
-  } else {
-    // Juste ouverture de conversation
-    return callback?.(`✅ Conversation ouverte avec ${to}`);
+    try {
+      await Message.create({
+        content,
+        author: sender._id,
+        recipient: recipient._id,
+        channel: null // car message privé
+      });
+    } catch (err) {
+      console.error('❌ Erreur enregistrement message privé :', err);
+    }
   }
+
+  callback?.(`✅ Message envoyé à ${to}`);
 });
 
 
   ///////////// Lister les canaux du serveur (/list) ///////////////
 socket.on('/list', async (filter = '', callback) => {
   try {
-    const regex = new RegExp(filter, 'i'); // i = insensible à la casse
+    const regex = new RegExp(filter, 'i'); 
     const allChannels = await Channel.find({ name: { $regex: regex } })
       .populate('users', 'username')
       .lean();
@@ -292,18 +327,20 @@ socket.on('/list', async (filter = '', callback) => {
 
  
   ////////////////// Lister les utilisateurs d'un canal (/users)///////////////////////
-  socket.on('/users', async (callback) => {
+  socket.on('/users', async (channelName, callback) => {
+    if (typeof callback !== 'function') return;
+
     try {
       const currentUser = await User.findOne({ socketId: socket.id });
-      const channelDoc = await Channel.findOne({ users: currentUser._id });
+      const channelDoc = await Channel.findOne({ name: channelName });
 
-      if (!channelDoc) {
-        return callback("❌ Tu n'es dans aucun canal.");
+      if (!channelDoc || !channelDoc.users.includes(currentUser._id.toString())) {
+        return callback("❌ Tu n'es pas membre de ce canal.");
       }
 
       const usersInChannel = await User.find({ _id: { $in: channelDoc.users } }, 'username');
-      const list = usersInChannel.map(u => u.username).join(', ');
-      callback(`👥 Utilisateurs dans #${channelDoc.name} : ${list}`);
+      const list = usersInChannel.map(u => u.username);
+      callback(list);  // ici, on renvoie une liste, pas une string
     } catch (err) {
       console.error('/users error :', err);
       callback("❌ Erreur lors de la récupération des utilisateurs.");
@@ -312,35 +349,34 @@ socket.on('/list', async (filter = '', callback) => {
 
   ////////////// Liste conversations privées de l'utilisateur (/privates) ///////////////
   socket.on('/privates', async (callback) => {
-  const nickname = users[socket.id];
-  if (!nickname) return callback([]);
-  try {
-    const me = await User.findOne({ username: nickname });
-    if (!me) return callback([]);
+    const nickname = users[socket.id];
+    if (!nickname) return callback([]);
 
-    // Trouver tous les utilisateurs avec qui j'ai échangé au moins un message privé
-    const messages = await Message.find({
-      $or: [
-        { author: me._id },
-        { recipient: me._id }
-      ],
-      recipient: { $ne: null } // message privé
-    }).populate('author recipient', 'username');
+    try {
+      const me = await User.findOne({ username: nickname });
+      if (!me) return callback([]);
 
-    // Extraire les interlocuteurs uniques
-    const interlocutorsSet = new Set();
+      const messages = await Message.find({
+        $or: [
+          { author: me._id },
+          { recipient: me._id }
+        ],
+        recipient: { $ne: null }
+      }).populate('author recipient', 'username');
 
-    messages.forEach(msg => {
-      if (msg.author.username !== nickname) interlocutorsSet.add(msg.author.username);
-      if (msg.recipient.username !== nickname) interlocutorsSet.add(msg.recipient.username);
-    });
+      const interlocutorsSet = new Set();
 
-    callback(Array.from(interlocutorsSet));
-  } catch (err) {
-    console.error('Erreur dans /privates:', err);
-    callback([]);
-  }
-});
+      messages.forEach(msg => {
+        if (msg.author.username !== nickname) interlocutorsSet.add(msg.author.username);
+        if (msg.recipient.username !== nickname) interlocutorsSet.add(msg.recipient.username);
+      });
+
+      callback(Array.from(interlocutorsSet));
+    } catch (err) {
+      console.error('Erreur dans /privates:', err);
+      callback([]);
+    }
+  });
 
 /////////// Récupérer les canaux de l'utilisateur (/mychannels) ///////////////
   socket.on('/mychannels', async (callback) => {

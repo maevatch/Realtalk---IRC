@@ -7,26 +7,28 @@ function PrivateChat({ recipient, nickname }) {
   const [serverMessage, setServerMessage] = useState('');
 
   useEffect(() => {
-  setMessages([]); // reset messages à chaque changement de destinataire
+    setMessages([]); // reset à chaque changement de destinataire
 
-  socket.emit('/private_history', recipient, (history) => {
-    setMessages(history || []);
-  });
+    socket.emit('/private_history', recipient, (history) => {
+      setMessages(history || []);
+    });
 
-  const handlePrivate = ({ from, content }) => {
-    // Ne réagit que si le message vient bien du destinataire en cours
-    if (from === recipient) {
-      setMessages(prev => [...prev, `📥 ${from} : ${content}`]);
-    }
-  };
+    const handlePrivate = ({ from, content }) => {
+      // Affiche les messages reçus d'autrui
+      if (from === recipient) {
+        setMessages(prev => [...prev, `📥 ${from} : ${content}`]);
+      } else if (from === nickname && recipient) {
+        // Optionnel : reflète aussi mes propres messages envoyés dans un autre onglet
+        setMessages(prev => [...prev, `➡️ (Moi à ${recipient}) : ${content}`]);
+      }
+    };
 
-  socket.on('private_message', handlePrivate);
+    socket.on('private_message', handlePrivate);
 
-  return () => {
-    socket.off('private_message', handlePrivate);
-  };
-}, [recipient]);
-
+    return () => {
+      socket.off('private_message', handlePrivate);
+    };
+  }, [recipient, nickname]);
 
   const sendPrivate = (e) => {
     e.preventDefault();
@@ -45,12 +47,15 @@ function PrivateChat({ recipient, nickname }) {
   return (
     <div>
       <h2>Privé avec {recipient}</h2>
-      <div id="chat" style={{ height: 200, overflowY: 'scroll', border: '1px solid gray' }}>
+
+      <div id="chat" style={{ height: 200, overflowY: 'scroll', border: '1px solid gray', marginBottom: '1rem' }}>
         {messages.map((msg, i) => <p key={i}>{msg}</p>)}
       </div>
+
       <form onSubmit={sendPrivate}>
         <input value={input} onChange={e => setInput(e.target.value)} />
       </form>
+
       {serverMessage && <p>{serverMessage}</p>}
     </div>
   );
