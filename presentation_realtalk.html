@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Présentation RealTalk</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            page-break-after: always;
+            background: white;
+            margin-bottom: 2rem;
+        }
+        
+        .slide:nth-child(odd) {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            color: #25D366;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #25D366;
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            font-size: 1.8rem;
+            color: #34495e;
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        ul {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            max-width: 800px;
+            text-align: left;
+        }
+        
+        li {
+            margin-bottom: 0.8rem;
+            padding-left: 1rem;
+        }
+        
+        .tech-stack {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        .tech-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .demo-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 1rem 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .difficulty-item {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+        
+        .solution-item {
+            background: #d1edff;
+            border-left: 4px solid #0066cc;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 2rem;
+        }
+        
+        @media print {
+            .slide {
+                page-break-after: always;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Titre -->
+<div class="slide">
+    <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="#25D366" stroke="#fff" stroke-width="2"/>
+        <path d="M25 35 C25 28, 30 23, 37 23 L63 23 C70 23, 75 28, 75 35 L75 50 C75 57, 70 62, 63 62 L45 62 L35 70 L35 62 C28 62, 25 57, 25 50 Z" fill="white"/>
+        <circle cx="40" cy="40" r="3" fill="#25D366"/>
+        <circle cx="50" cy="40" r="3" fill="#25D366"/>
+        <circle cx="60" cy="40" r="3" fill="#25D366"/>
+        <text x="50" y="85" text-anchor="middle" font-size="12" font-weight="bold" fill="white">RT</text>
+    </svg>
+    <h1>RealTalk</h1>
+    <p style="font-size: 1.5rem; color: #666; text-align: center; max-width: 600px;">
+        Application de chat en temps réel moderne avec interface WhatsApp Desktop
+    </p>
+    <p style="font-size: 1.2rem; color: #888; margin-top: 2rem;">
+        Présentation du projet - 2024
+    </p>
+</div>
+
+<!-- Slide 2: Sommaire -->
+<div class="slide">
+    <h2>Sommaire</h2>
+    <ul style="font-size: 1.5rem; line-height: 2.5;">
+        <li><strong>Contexte</strong> - Objectifs et besoins du projet</li>
+        <li><strong>Organisation</strong> - Architecture et technologies</li>
+        <li><strong>Difficultés rencontrées</strong> - Défis techniques et solutions</li>
+        <li><strong>Démonstration</strong> - Fonctionnalités et interface</li>
+    </ul>
+</div>
+
+<!-- Slide 3: Contexte -->
+<div class="slide">
+    <h2>Contexte</h2>
+    
+    <h3>Objectif du projet</h3>
+    <ul>
+        <li>Créer une application de chat moderne et intuitive</li>
+        <li>Offrir une alternative simple aux solutions existantes</li>
+        <li>Implémenter une communication en temps réel</li>
+        <li>Proposer une interface familière inspirée de WhatsApp</li>
+    </ul>
+    
+    <h3>Besoins identifiés</h3>
+    <ul>
+        <li>Communication par canaux thématiques</li>
+        <li>Messages privés entre utilisateurs</li>
+        <li>Gestion des permissions (création/suppression)</li>
+        <li>Interface responsive et moderne</li>
+        <li>Expérience utilisateur optimisée</li>
+    </ul>
+</div>
+
+<!-- Slide 4: Organisation -->
+<div class="slide">
+    <h2>Organisation</h2>
+    
+    <div class="tech-stack">
+        <div class="tech-box">
+            <h3>Frontend (Client)</h3>
+            <ul>
+                <li><strong>React 18</strong> - Interface utilisateur</li>
+                <li><strong>Vite</strong> - Build tool moderne</li>
+                <li><strong>Socket.IO Client</strong> - WebSocket</li>
+                <li><strong>CSS personnalisé</strong> - Design WhatsApp</li>
+            </ul>
+        </div>
+        
+        <div class="tech-box">
+            <h3>Backend (Serveur)</h3>
+            <ul>
+                <li><strong>Node.js</strong> - Runtime JavaScript</li>
+                <li><strong>Socket.IO</strong> - Communication temps réel</li>
+                <li><strong>Gestion en mémoire</strong> - Stockage temporaire</li>
+                <li><strong>API événementielle</strong> - Architecture modulaire</li>
+            </ul>
+        </div>
+    </div>
+    
+    <h3>Architecture du projet</h3>
+    <ul>
+        <li><strong>Composants modulaires</strong> - Réutilisabilité et maintenance</li>
+        <li><strong>Communication bidirectionnelle</strong> - Client ↔ Serveur</li>
+        <li><strong>Gestion d'état centralisée</strong> - React hooks</li>
+        <li><strong>Styles centralisés</strong> - CSS personnalisé (realtalk.css)</li>
+    </ul>
+</div>
+
+<!-- Slide 5: Difficultés rencontrées -->
+<div class="slide">
+    <h2>Difficultés rencontrées</h2>
+    
+    <div class="difficulty-item">
+        <h3>Problème : Bouton supprimer invisible</h3>
+        <p><strong>Symptôme :</strong> Le bouton de suppression de canal n'apparaissait pas pour les créateurs</p>
+        <p><strong>Cause :</strong> Information de l'auteur du canal non transmise depuis la sidebar</p>
+    </div>
+    
+    <div class="solution-item">
+        <h3>Solution mise en place</h3>
+        <ul>
+            <li>Ajout d'un state <code>joinedChannelsWithAuthor</code> dans la sidebar</li>
+            <li>Enrichissement des données avec l'information d'auteur</li>
+            <li>Transmission correcte de l'auteur lors de la sélection</li>
+            <li>Synchronisation des événements socket (join/quit/force_quit)</li>
+        </ul>
+    </div>
+    
+    <div class="difficulty-item">
+        <h3>Défi : Design cohérent et moderne</h3>
+        <p><strong>Objectif :</strong> Créer une interface professionnelle inspirée de WhatsApp Desktop</p>
+    </div>
+    
+    <div class="solution-item">
+        <h3>Approche adoptée</h3>
+        <ul>
+            <li>Création d'un système de design complet (realtalk.css)</li>
+            <li>Palette de couleurs authentique WhatsApp</li>
+            <li>Composants réutilisables avec classes CSS</li>
+            <li>Interface responsive pour tous les appareils</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Slide 6: Démonstration -->
+<div class="slide">
+    <h2>Démonstration</h2>
+    
+    <div class="demo-section">
+        <h3>Fonctionnalités principales</h3>
+        <ul>
+            <li><strong>Authentification</strong> - Page de connexion avec logo personnalisé</li>
+            <li><strong>Navigation</strong> - Sidebar avec onglets Canaux/Conversations</li>
+            <li><strong>Canaux publics</strong> - Création, jointure, suppression</li>
+            <li><strong>Messages privés</strong> - Conversations directes</li>
+            <li><strong>Temps réel</strong> - Communication instantanée</li>
+        </ul>
+    </div>
+    
+    <div class="demo-section">
+        <h3>Interface utilisateur</h3>
+        <ul>
+            <li><strong>Design moderne</strong> - Inspiré de WhatsApp Desktop</li>
+            <li><strong>Sidebar noire</strong> - Navigation intuitive</li>
+            <li><strong>Zone de chat claire</strong> - Messages stylisés</li>
+            <li><strong>Responsive</strong> - Adaptation mobile/desktop</li>
+            <li><strong>Interactions fluides</strong> - Animations et transitions</li>
+        </ul>
+    </div>
+    
+    <div class="demo-section">
+        <h3>Gestion des permissions</h3>
+        <ul>
+            <li><strong>Créateur de canal</strong> - Droits de suppression</li>
+            <li><strong>Membres</strong> - Participation et sortie libre</li>
+            <li><strong>Sécurité</strong> - Confirmations pour actions critiques</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Script pour impression/export PDF
+    window.onload = function() {
+        console.log("Présentation RealTalk chargée");
+        console.log("Pour exporter en PDF : Ctrl+P puis 'Enregistrer au format PDF'");
+    };
+</script>
+
+</body>
+</html>

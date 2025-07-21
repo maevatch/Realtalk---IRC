@@ -1,0 +1,43 @@
+# Fichiers d'environnement (contiennent des secrets)
+.env
+.env.local
+.env.development
+.env.production
+
+# Dépendances Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fichiers de build
+dist/
+build/
+
+# Fichiers temporaires
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Fichiers IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Coverage
+coverage/
+
+# Fichiers de base de données locales
+*.db
+*.sqlite
+*.sqlite3
