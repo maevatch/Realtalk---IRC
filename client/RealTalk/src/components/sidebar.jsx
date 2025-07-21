@@ -99,7 +99,7 @@ function Sidebar({ nickname, onSelectConversation }) {
     socket.emit('/create', channelName, (response) => {
       alert(response);
       if (response.startsWith('✅')) {
-        // 👉 Rejoindre automatiquement le canal juste après l’avoir créé
+        // 👉 Rejoindre automatiquement le canal juste après l'avoir créé
         socket.emit('/join', channelName, (joinResponse) => {
           if (joinResponse.startsWith('✅')) {
             onSelectConversation({ type: 'channel', name: channelName, author: nickname });
