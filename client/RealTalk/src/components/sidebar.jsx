@@ -127,65 +127,98 @@ function Sidebar({ nickname, onSelectConversation }) {
     };
 
   return (
-    <div style={{ width: '250px', borderRight: '1px solid #ccc', padding: '1rem', display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '1rem' }}>
-        <button onClick={() => setActiveTab('channels')}>Canaux</button>
-        <button onClick={() => setActiveTab('conversations')}>Conversations</button>
+    <div className="sidebar">
+      <div className="sidebar-header">
+        <div className="sidebar-title">RealTalk</div>
+        <div style={{ color: '#8696a0', fontSize: '0.9rem' }}>@{nickname}</div>
       </div>
 
-      <div style={{ flexGrow: 1, overflowY: 'auto' }}>
+      <div className="sidebar-tabs">
+        <button 
+          className={`sidebar-tab ${activeTab === 'channels' ? 'active' : ''}`}
+          onClick={() => setActiveTab('channels')}
+        >
+          Canaux
+        </button>
+        <button 
+          className={`sidebar-tab ${activeTab === 'conversations' ? 'active' : ''}`}
+          onClick={() => setActiveTab('conversations')}
+        >
+          Conversations
+        </button>
+      </div>
+
+      <div className="sidebar-content">
         {activeTab === 'channels' && (
-          <ul>
+          <ul className="sidebar-list">
             {channels.map(({ name, author }) => (
-              <li key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span>#{name} <i style={{ fontSize: '0.8em', color: '#666' }}>par {author}</i></span>
-                <button onClick={() => handleJoinChannel(name, author)} title={`Rejoindre #${name}`}>+</button>
+              <li key={name} className="sidebar-item">
+                <div className="channel-info">
+                  <div className="channel-name">#{name}</div>
+                  <div className="channel-author">par {author}</div>
+                </div>
+                <button 
+                  className="join-button" 
+                  onClick={() => handleJoinChannel(name, author)} 
+                  title={`Rejoindre #${name}`}
+                >
+                  +
+                </button>
               </li>
             ))}
           </ul>
-
         )}
 
         {activeTab === 'conversations' && (
-          <ul>
+          <ul className="sidebar-list">
             {joinedChannelsWithAuthor.map(({ name, author }) => (
-              <li key={name} style={{ cursor: 'pointer' }} onClick={() => onSelectConversation({ type: 'channel', name, author })}>
-                #{name} <i style={{ fontSize: '0.8em', color: '#666' }}>par {author}</i>
+              <li 
+                key={name} 
+                className="sidebar-item" 
+                onClick={() => onSelectConversation({ type: 'channel', name, author })}
+              >
+                <div className="channel-info">
+                  <div className="channel-name">#{name}</div>
+                  <div className="channel-author">par {author}</div>
+                </div>
               </li>
             ))}
             {privateConversations.map((user) => (
-              <li key={user} style={{ cursor: 'pointer' }} onClick={() => onSelectConversation({ type: 'private', name: user })}>
-                🔒 {user}
+              <li 
+                key={user} 
+                className="sidebar-item" 
+                onClick={() => onSelectConversation({ type: 'private', name: user })}
+              >
+                <div className="channel-info">
+                  <div className="channel-name">🔒 {user}</div>
+                  <div className="channel-author">Conversation privée</div>
+                </div>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {/* ➕ Bouton pour message privé */}
-      <div style={{ position: 'relative', textAlign: 'right', marginTop: '1rem' }}>
-  <button onClick={() => setShowActions((prev) => !prev)} title="Nouveau...">➕</button>
+      <div className="sidebar-actions">
+        <button 
+          className="add-button" 
+          onClick={() => setShowActions((prev) => !prev)} 
+          title="Nouveau..."
+        >
+          +
+        </button>
 
-  {showActions && (
-    <div style={{
-      position: 'absolute',
-      bottom: '2.5rem',
-      right: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.5rem',
-      backgroundColor: '#fff',
-      border: '1px solid #ccc',
-      padding: '0.5rem',
-      borderRadius: '8px',
-      zIndex: 10
-    }}>
-      <button onClick={handleCreateChannel} title="Créer un canal">#️</button>
-      <button onClick={handlePrivateMessage} title="Message privé">🔒</button>
-    </div>
-  )}
-</div>
-
+        {showActions && (
+          <div className="actions-popup">
+            <button className="action-button" onClick={handleCreateChannel}>
+              📢 Créer un canal
+            </button>
+            <button className="action-button" onClick={handlePrivateMessage}>
+              🔒 Message privé
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

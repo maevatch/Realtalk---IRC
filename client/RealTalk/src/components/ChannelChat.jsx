@@ -70,51 +70,67 @@ function ChannelChat({ channel, author, nickname }) {
   }
 
   return (
-    <div>
-      <h2>Canal : #{channel}</h2>
-
-      {/* Boutons de gestion */}
-      <div style={{ marginBottom: '1rem' }}>       
-        <button onClick={quitChannel} title='Quitter'>👋 </button> {/* Pour quitter le canal */}      
-        {author === nickname && (
-        <button onClick={deleteChannel} title='Supprimer' style={{ color: 'red' }}>🗑️</button> )} {/* Pour supprimer le canal */}
-        <button onClick={ShowUsers} title="Voir les utilisateurs">👥</button>   {/* Pour voir users dans channel */} 
+    <>
+      <div className="chat-header">
+        <div className="chat-title">#{channel}</div>
+        <div className="chat-actions">
+          <button className="chat-button" onClick={quitChannel} title='Quitter'>
+            👋
+          </button>
+          {author === nickname && (
+            <button className="chat-button delete" onClick={deleteChannel} title='Supprimer'>
+              🗑️
+            </button>
+          )}
+          <button className="chat-button" onClick={ShowUsers} title="Voir les utilisateurs">
+            👥
+          </button>
+        </div>
       </div>
 
-      <div id="chat" style={{ height: 200, overflowY: 'scroll', border: '1px solid gray', marginBottom: '1rem' }}>
-        {messages.map((msg, i) => <p key={i}>{msg}</p>)}
+      <div className="chat-messages">
+        {messages.map((msg, i) => (
+          <div key={i} className={`message ${msg.includes('✅') || msg.includes('⛔') || msg.includes('👋') ? 'server' : ''}`}>
+            {msg}
+          </div>
+        ))}
+        {serverMessage && (
+          <div className="message server">
+            {serverMessage}
+          </div>
+        )}
       </div>
 
-      <form onSubmit={sendMessage}>
-        <input value={input} onChange={(e) => setInput(e.target.value)} />
-      </form>
-
-      {serverMessage && <p>{serverMessage}</p>}
+      <div className="chat-input-container">
+        <form className="chat-input-form" onSubmit={sendMessage}>
+          <input 
+            className="chat-input"
+            value={input} 
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Tapez votre message..."
+          />
+          <button type="submit" className="send-button">
+            ➤
+          </button>
+        </form>
+      </div>
 
       {showUsers && (
-  <div style={{
-    position: 'absolute',
-    right: '1rem',
-    top: '1rem',
-    width: '250px',
-    background: '#f9f9f9',
-    border: '1px solid #ccc',
-    padding: '1rem',
-    boxShadow: '0 0 10px rgba(0,0,0,0.2)'
-  }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-      <strong>Utilisateurs</strong>
-      <button onClick={() => setShowUsers(false)} style={{ background: 'transparent', border: 'none', fontWeight: 'bold' }}>✖</button>
-    </div>
-    <ul>
-      {channelUsers.map((u, i) => (
-        <li key={i}>{u}</li>
-      ))}
-    </ul>
-  </div>
-)}
-
-    </div>
+        <div className="users-popup">
+          <div className="users-popup-header">
+            <div className="users-popup-title">Utilisateurs connectés</div>
+            <button className="users-popup-close" onClick={() => setShowUsers(false)}>
+              ✖
+            </button>
+          </div>
+          <ul className="users-list">
+            {channelUsers.map((u, i) => (
+              <li key={i} className="user-item">{u}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
   );
 }
 

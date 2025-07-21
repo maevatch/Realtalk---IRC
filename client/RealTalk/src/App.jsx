@@ -4,6 +4,7 @@ import Sidebar from './components/sidebar';
 import ChannelChat from './components/ChannelChat';
 import PrivateChat from './components/PrivateChat';
 import socket from './socket';
+import './styles/whatsapp.css';
 
 function App() {
   const [nickname, setNickname] = useState('');
@@ -46,19 +47,27 @@ function App() {
   if (!nickname) {
     return <Auth onAuthenticated={setNickname} />;
   }
+  
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div className="app-container">
       <Sidebar
         nickname={nickname}
         onSelectConversation={handleSelectConversation}
       />
-      <div style={{ flex: 1, padding: '1rem', position: 'relative' }}>
+      <div className="chat-container">
         {welcomeMessage && (
-          <div style={{ backgroundColor: '#e0ffe0', border: '1px solid green', padding: '0.5rem', marginBottom: '1rem' }}>
+          <div className="welcome-message">
             {welcomeMessage}
           </div>
         )}
-        {!selectedConversation && <p>💬 Sélectionne une conversation</p>}
+        
+        {!selectedConversation && (
+          <div className="empty-state">
+            <div className="empty-state-icon">💬</div>
+            <div className="empty-state-text">Sélectionnez une conversation</div>
+            <div className="empty-state-subtext">Choisissez un canal ou démarrez une conversation privée</div>
+          </div>
+        )}
 
         {selectedConversation?.type === 'channel' && (
           <ChannelChat

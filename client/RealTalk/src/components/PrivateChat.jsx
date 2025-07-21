@@ -45,19 +45,43 @@ function PrivateChat({ recipient, nickname }) {
   };
 
   return (
-    <div>
-      <h2>Privé avec {recipient}</h2>
-
-      <div id="chat" style={{ height: 200, overflowY: 'scroll', border: '1px solid gray', marginBottom: '1rem' }}>
-        {messages.map((msg, i) => <p key={i}>{msg}</p>)}
+    <>
+      <div className="chat-header">
+        <div className="chat-title">🔒 {recipient}</div>
+        <div className="chat-actions">
+          <div style={{ color: '#8696a0', fontSize: '0.9rem' }}>
+            Conversation privée
+          </div>
+        </div>
       </div>
 
-      <form onSubmit={sendPrivate}>
-        <input value={input} onChange={e => setInput(e.target.value)} />
-      </form>
+      <div className="chat-messages">
+        {messages.map((msg, i) => (
+          <div key={i} className={`message ${msg.includes('✅') || msg.includes('⛔') ? 'server' : ''}`}>
+            {msg}
+          </div>
+        ))}
+        {serverMessage && (
+          <div className="message server">
+            {serverMessage}
+          </div>
+        )}
+      </div>
 
-      {serverMessage && <p>{serverMessage}</p>}
-    </div>
+      <div className="chat-input-container">
+        <form className="chat-input-form" onSubmit={sendPrivate}>
+          <input 
+            className="chat-input"
+            value={input} 
+            onChange={e => setInput(e.target.value)}
+            placeholder="Tapez votre message privé..."
+          />
+          <button type="submit" className="send-button">
+            ➤
+          </button>
+        </form>
+      </div>
+    </>
   );
 }
 

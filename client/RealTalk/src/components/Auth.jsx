@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import socket from '../socket';
+import Logo from './Logo';
+import '../styles/whatsapp.css';
 
 function Auth({ onAuthenticated }) {
   const [username, setUsername] = useState('');
@@ -22,19 +24,34 @@ function Auth({ onAuthenticated }) {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '400px', margin: 'auto', textAlign: 'center' }}>
-      <h2>Connexion</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Entre ton pseudo"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem' }}
-        />
-        <button type="submit" style={{ padding: '0.5rem 1rem' }}>Se connecter</button>
-      </form>
-      {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+    <div className="auth-container">
+      <div className="auth-card">
+        <div style={{ marginBottom: '2rem' }}>
+          <Logo size={100} />
+        </div>
+        <h1 className="auth-title">RealTalk</h1>
+        <p className="auth-subtitle">Connectez-vous pour commencer à discuter</p>
+        
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Entrez votre pseudo"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="auth-input"
+            autoComplete="username"
+          />
+          <button type="submit" className="auth-button">
+            Se connecter
+          </button>
+        </form>
+        
+        {message && (
+          <div className={`auth-message ${message.startsWith('✅') ? 'success' : 'error'}`}>
+            {message}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
